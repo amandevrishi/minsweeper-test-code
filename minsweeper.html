@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Minsweeper</title>
+        <style>
+            body, html{
+                margin: 0;
+                padding: 0;
+                font-family: sans-serif;
+                font-size: 0;
+                box-sizing: border-box;
+                text-align: center;
+            }
+            #wrapper{
+               display: inline-block;
+                border:1px solid #000;
+                margin-top: 50px;
+            }
+            .col{
+                width: 50px;
+                height: 50px;
+                display: inline-block;
+                vertical-align: top;
+                background-color: #efefef;
+                border:1px solid #fff;
+                color: #000;
+                font-size: 20px;
+                line-height: 50px;
+            }
+            .col.active{
+                background-color: aqua;
+            }
+            .col > img{
+                width: 100%;
+            }
+            .col:hover{
+                background-color: aqua;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="wrapper"></div>
+        <script>
+            // Global variables
+            let wrapperBox = document.getElementById('wrapper');
+            let minCount = 0;    
+            let rowCount = 10;
+            let colCount = 10; 
+            let allMineBoxs = 0;
+
+
+            // Initialzed broad grid of 10 by 10
+            board(10, 10);
+
+            
+            // Board grid creation function
+            function board(rows, cols){
+                for(let i = 0; i<rows;i++){    // Row creation 
+                    let newRow = document.createElement('DIV'); 
+                    newRow.classList.add('row'); 
+                    for(let j = 0; j<cols; j++){    // Columns creation under each row 
+                        let newCol = document.createElement('DIV');
+                        newCol.setAttribute('data-row', i);    // Added row attribute to get current row position
+                        newCol.setAttribute('data-col', j);    // Added col attribute to get current col position
+                        newCol.classList.add('col');
+                        if(Math.random() < 0.1){    // Used Math random function to generate random mine columns which will take 1% on the total grid
+                            newCol.classList.add('mine');
+                        }
+                        newCol.addEventListener('click', function(e){   // Added click event on each column element 
+                            boxClicked(e);
+                        });
+                        newRow.append(newCol);
+                    }
+                    wrapperBox.append(newRow);
+                    allMineBoxs = document.querySelectorAll('.col.mine').length; //  Total mines present in the grid
+                }
+            }
+
+
+            // Traversing function to show neighbouring columns with bom count 
+            function showAdjecentBombCount(k,l){ 
+                let m = parseInt(k);
+                let n = parseInt(l);
+                for(di = -1; di <=1; di++){   // For loop used for traversing neighbouring rows
+                    for(dj = -1; dj<=1; dj++){  // For loop used for traversing neighbouring columns
+                        let nk = (m+di);   
+                        let nl = (n+dj);
+                        if(nk >= rowCount || nl >= colCount || nk < 0 || nl < 0){   // Controlling out of bounds 
+                            continue;
+                        }
+                        else{
+                            let adjecentDivs = document.querySelector('div[data-row="'+(nk)+'"][data-col="'+(nl)+'"]');   
+                            if(adjecentDivs.classList.contains('mine')){   // Getting number of neighbouring mines
+                                minCount++; // Setting number of neighbouring mines to display in the column
+                            }
+                        }
+                    }
+                }  
+            }
+
+
+            // Click event
+            function boxClicked(e){
+                minCount = 0; // Resetting Mine count on each click
+                if(e.currentTarget.classList.contains('mine')){   // Mine encountered
+                    e.currentTarget.innerHTML = '<img src="https://storage.googleapis.com/replit/images/1545220146051_48f373ca2fe75d80cde9b1235a088351.pn" alt=""/>'
+                    setTimeout(function(){
+                        alert('Game Over!');
+                        wrapperBox.innerHTML = '';   // Emptying wrapper html
+                        board(10,10);   // Initalizing again after alert 
+                    },500)
+                }
+                else{
+                    // Clicking on non-mine columns
+                    e.currentTarget.classList.add('active');
+                    let row = e.currentTarget.getAttribute('data-row');   // Getting current row position
+                    let col = e.currentTarget.getAttribute('data-col');   // Getting current column position
+                    showAdjecentBombCount(row, col);   // Calling traversing function based on current postion
+                    e.currentTarget.innerHTML = minCount;   // Setting number of Mine in neighbouring columns
+                    let allActiveBoxs = document.querySelectorAll('.col.active').length;   // Getting all non-mines columns count
+                    if((allActiveBoxs + allMineBoxs) === (rowCount*colCount)){   // Adding non-mines + mines columns count to get 10*10 grid
+                        setTimeout(function(){
+                            alert('Yaah!! Game Won!');
+                            wrapperBox.innerHTML = '';   // Emptying wrapper html
+                            board(10,10);   // Initalizing again after alert 
+                        },100)
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>
